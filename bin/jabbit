@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'jabbit'
+require_relative '../lib/jabbit'
 
 Jabbit.go!

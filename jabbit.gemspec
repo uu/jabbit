@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
   s.date        = '2013-01-20'
   s.summary     = "Jabber via RabbitMQ proxy."
   s.description = "Jabbit takes encrypted json messages from rabbitmq query and push it to jabber connection"
+   s.homepage = 'http://github.com/uu/jabbit'
   s.authors     = ["Igor Loskutoff"]
   s.email       = 'igor.loskutoff@gmail.com'
   s.files = Dir['lib/**/*'] + Dir['bin/*']
