@@ -56,8 +56,8 @@ class Jabbit
     log.debug "connected"
 
     q.subscribe(:block => true, :ack => true) do |delivery_info, properties, payload|
-      ack = lambda { ch.ack delivery_info.delivery_tag }
-      log.debug "payload: " + payload
+      ack = lambda { ch.ack delivery_info[:delivery_tag], false }
+      log.debug "payload: " + payload.inspect
       begin
         json = JSON.parse(payload)
       rescue JSON::ParserError => error
