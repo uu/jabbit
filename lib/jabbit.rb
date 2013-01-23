@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'xmpp4r'
+require 'xmpp4r-simple'
 require 'bunny'
 require 'json'
 require 'settingslogic'
@@ -8,17 +8,17 @@ require_relative 'Jabbit/Settings'
 
 class Jabbit
 
-  def self.jabber_reconnect(cl)
-    begin
-      cl.connect Settings.jabber_host, Settings.jabber_port
-      cl.auth(Settings.jabber_pass)
-      cl.send(Jabber::Presence.new.set_show(:chat).set_status('your mom!'))
-    rescue Errno::ECONNREFUSED
-      log.warn "server sort of not respond. waiting..."
-      sleep 5
-      jabber_reconnect(cl)
-    end
-  end
+#def self.jabber_reconnect(cl)
+#   begin
+#     cl.connect Settings.jabber_host, Settings.jabber_port
+#     cl.auth(Settings.jabber_pass)
+#     cl.send(Jabber::Presence.new.set_show(:chat).set_status('your mom!'))
+#   rescue Errno::ECONNREFUSED
+#     log.warn "server sort of not respond. waiting..."
+#     sleep 5
+#     jabber_reconnect(cl)
+#   end
+# end
 
   def self.go!
 
@@ -47,13 +47,14 @@ class Jabbit
 
     log.debug "created or obtained existed queue #{queue_name} and bind it to exchange #{exchange_name}"
 
-    robot = Jabber::Client::new(Jabber::JID::new(Settings.jabber_login))
+	#robot = Jabber::Client::new(Jabber::JID::new(Settings.jabber_login))
 
 
 
     log.debug "initial connect to jabber server..."
-    jabber_reconnect(robot)
-    log.debug "connected"
+	robot = Jabber::Simple.new(Settings.jabber_login, Settings.jabber_pass)
+	#jabber_reconnect(robot)
+    log.debug "connected" if robot
 
     q.subscribe(:block => true, :ack => true) do |delivery_info, properties, payload|
       ack = lambda { ch.ack delivery_info[:delivery_tag], false }
@@ -66,15 +67,16 @@ class Jabbit
         raise error
       end
 
-      message = Jabber::Message::new(json["to"], json["body"])
-      message.set_type(:chat)
+#     message = Jabber::Message::new(json["to"], json["body"])
+#message.set_type(:chat)
 
       begin
-        robot.send message
+		#robot.send message
+        robot.deliver(json["to"], json["body"])
       rescue IOError
         log.warn "le' troubles in sending: "
         sleep 5
-        jabber_reconnect(robot)
+		#jabber_reconnect(robot)
         ch.basic_recover(true)
       else
         log.debug "acknowledging message"
