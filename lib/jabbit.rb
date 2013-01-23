@@ -53,6 +53,7 @@ class Jabbit
 
     log.debug "initial connect to jabber server..."
 	robot = Jabber::Simple.new(Settings.jabber_login, Settings.jabber_pass)
+	robot.status(:chat, Settings.status_message)
 	#jabber_reconnect(robot)
     log.debug "connected" if robot
 

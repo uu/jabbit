@@ -3,4 +3,6 @@ jabber_port: 5222
 jabber_login: swejk@pinkiepie
 jabber_pass: sukidayo
 
-debug: false
+status_messages: Meganotifier
+
+debug: true
