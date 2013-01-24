@@ -34,7 +34,7 @@ class Jabbit
 
     log.info "starting application"
 
-    conn = Bunny.new
+    conn = Bunny.new(:keepalive => true)
     conn.start
 
     log.debug "created bunny connection"
