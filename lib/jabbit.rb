@@ -34,7 +34,7 @@ class Jabbit
 
     log.info "starting application"
 
-    conn = Bunny.new(:keepalive => true)
+    conn = Bunny.new(:keepalive => true, :user => Settings.amqp_user, :password => Settings.amqp_pass)
     conn.start
 
     log.debug "created bunny connection"
