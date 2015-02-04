@@ -19,6 +19,8 @@ class Jabbit
       log = Logger.new(STDOUT)
     end
 
+    log.datetime_format = '%Y-%m-%d %H:%M:%S'
+
     if Settings.debug
       log.level = Logger::Severity::DEBUG
     else
