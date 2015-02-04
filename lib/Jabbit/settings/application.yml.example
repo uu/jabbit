@@ -2,8 +2,11 @@ jabber_host: localhost
 jabber_port: 5222
 jabber_login: swejk@pinkiepie
 jabber_pass: sukidayo
+
+amqp_host: localhost
 amqp_user: guest
 amqp_pass: guest
 status_message: Meganotifier
 
 debug: true
+log_path: /var/log/jabbit.log

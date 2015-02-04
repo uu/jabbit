@@ -8,58 +8,50 @@ require_relative 'Jabbit/Settings'
 
 class Jabbit
 
-#def self.jabber_reconnect(cl)
-#   begin
-#     cl.connect Settings.jabber_host, Settings.jabber_port
-#     cl.auth(Settings.jabber_pass)
-#     cl.send(Jabber::Presence.new.set_show(:chat).set_status('your mom!'))
-#   rescue Errno::ECONNREFUSED
-#     log.warn "server sort of not respond. waiting..."
-#     sleep 5
-#     jabber_reconnect(cl)
-#   end
-# end
-
   def self.go!
 
-    queue_name = "xmpp_q"
-    exchange_name = "xmpp"
+    queue_name = 'xmpp_q'
+    exchange_name = 'xmpp'
 
-    log = Logger.new(STDOUT)
+    if Settings.log_path
+      log = Logger.new(Settings.log_path)
+    else
+      log = Logger.new(STDOUT)
+    end
+
     if Settings.debug
       log.level = Logger::Severity::DEBUG
     else
       log.level = Logger::Severity::INFO
     end
 
-    log.info "starting application"
+    log.info 'starting application'
 
-    conn = Bunny.new(:keepalive => true, :user => Settings.amqp_user, :password => Settings.amqp_pass)
+    conn = Bunny.new(keepalive: true, user: Settings.amqp_user, pass: Settings.amqp_pass, host: Settings.amqp_host)
     conn.start
 
-    log.debug "created bunny connection"
+    log.debug 'created bunny connection'
 
-    ch  = conn.create_channel #ch.prefetch 1 # only one message at a time
+    ch = conn.create_channel #ch.prefetch 1 # only one message at a time
 
-    x = ch.fanout(exchange_name, :durable => true)
-    q = ch.queue(queue_name, {:durable => true})
+    x = ch.fanout(exchange_name, durable: true)
+    q = ch.queue(queue_name, {durable: true})
     q.bind(x)
 
     log.debug "created or obtained existed queue #{queue_name} and bind it to exchange #{exchange_name}"
 
-	#robot = Jabber::Client::new(Jabber::JID::new(Settings.jabber_login))
+    #robot = Jabber::Client::new(Jabber::JID::new(Settings.jabber_login))
 
 
+    log.info 'Connecting to the jabber server...'
+    robot = Jabber::Simple.new(Settings.jabber_login, Settings.jabber_pass)
+    robot.status(:chat, Settings.status_message)
+    #jabber_reconnect(robot)
+    log.info 'connected' if robot
 
-    log.debug "initial connect to jabber server..."
-	robot = Jabber::Simple.new(Settings.jabber_login, Settings.jabber_pass)
-	robot.status(:chat, Settings.status_message)
-	#jabber_reconnect(robot)
-    log.debug "connected" if robot
-
-    q.subscribe(:block => true, :ack => true) do |delivery_info, properties, payload|
+    q.subscribe(block: true, ack: true) do |delivery_info, properties, payload|
       ack = lambda { ch.ack delivery_info[:delivery_tag], false }
-      log.debug "payload: " + payload.inspect
+      log.debug 'payload: ' + payload.inspect
       begin
         json = JSON.parse(payload)
       rescue JSON::ParserError => error
@@ -68,24 +60,22 @@ class Jabbit
         raise error
       end
 
-#     message = Jabber::Message::new(json["to"], json["body"])
-#message.set_type(:chat)
-
       begin
-		#robot.send message
-        robot.deliver(json["to"], json["body"])
+        #robot.send message
+        log.info "Sending #{json['to']}"
+        robot.deliver(json['to'], json['body'])
       rescue IOError
-        log.warn "le' troubles in sending: "
+        log.warn "le' troubles in sending: #{json['to']}"
         sleep 5
-		#jabber_reconnect(robot)
+        #jabber_reconnect(robot)
         ch.basic_recover(true)
       else
-        log.debug "acknowledging message"
+        log.info 'acknowledging message'
         ack.call
       end
     end
 
-    puts "Disconnecting..."
+    log.info 'Disconnecting...'
 
     conn.close
   end
