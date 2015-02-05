@@ -51,8 +51,9 @@ class Jabbit
     #jabber_reconnect(robot)
     log.info 'connected' if robot
 
-    q.subscribe(block: true, ack: true) do |delivery_info, properties, payload|
+    q.subscribe(block: true, manual_ack: true) do |delivery_info, properties, payload|
       ack = lambda { ch.ack delivery_info[:delivery_tag], false }
+      log.info "payload: #{payload}"
       log.debug 'payload: ' + payload.inspect
       begin
         json = JSON.parse(payload)

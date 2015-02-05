@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.files = Dir['lib/**/*'] + Dir['bin/*']
 
   s.add_dependency('xmpp4r', '>= 0.5')
-  s.add_dependency('bunny', '>= 0.8.0')
+  s.add_dependency('bunny', '>= 1.6.3')
   s.add_dependency('settingslogic', '>= 2.0.6')
 
   s.executables << 'jabbit'
